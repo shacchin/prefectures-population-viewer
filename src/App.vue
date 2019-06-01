@@ -1,24 +1,20 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <api-connect-test/>
+    <line-graph />
   </div>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
-import HelloWorld from "./components/HelloWorld.vue";
-import ApiConnectTest from "./components/ApiConnectTest.vue";
+import LineGraph from "./components/LineGraph.vue";
 
 export default Vue.extend({
   name: "app",
   components: {
-    HelloWorld,
-    ApiConnectTest
+    LineGraph
   }
 });
 </script>
-
 <style>
 #app {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
