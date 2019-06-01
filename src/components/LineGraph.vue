@@ -1,14 +1,30 @@
 <template>
-  <div>
-    <h1>都道府県別人口グラフ</h1>
-    <div v-for="pref in prefectures" :key="pref.prefCode">
-      <input type="checkbox" :id="pref.prefCode" :value="pref" v-model="checkedPrefectures">
-      <label for="pref.prefCode">{{pref.prefName}}</label>
-    </div>
-    <div>
-      <highcharts :options="chartOptions"/>
-    </div>
-  </div>
+  <v-app id="line-graph">
+    <v-toolbar color="indigo" dark fixed app>
+      <v-container>
+        <v-layout justify-center align-center>
+          <v-toolbar-title class="display-1">都道府県別人口グラフ</v-toolbar-title>
+        </v-layout>
+      </v-container>
+    </v-toolbar>
+    <v-content>
+      <v-container grid-list-md text-md-center>
+        <v-layout row wrap>
+          <v-frex md3>
+            <v-chip class="title" label dark>都道府県</v-chip>
+          </v-frex>
+        </v-layout>
+        <v-layout row wrap>
+          <v-flex v-for="pref in prefectures" :key="pref.prefCode" md3>
+            <v-checkbox :value="pref" v-model="checkedPrefectures" :label="pref.prefName"></v-checkbox>
+          </v-flex>
+        </v-layout>
+      </v-container>
+      <div>
+        <highcharts :options="chartOptions"/>
+      </div>
+    </v-content>
+  </v-app>
 </template>
 <script lang="ts">
 import Vue from "vue";
@@ -102,5 +118,3 @@ export default Vue.extend({
   }
 });
 </script>
-
-
