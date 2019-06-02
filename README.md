@@ -1,34 +1,11 @@
-# prefectures-population-viewer
+# 都道府県別 総人口遷移グラフ
 
-## Project setup
-```
-yarn install
-```
+https://prefectures-population-viewer.netlify.com/
 
-### Compiles and hot-reloads for development
-```
-yarn run serve
-```
+## 概要
 
-### Compiles and minifies for production
-```
-yarn run build
-```
+都道府県を選択して年度ごとの人口遷移を折れ線グラフで参照できます。
 
-### Run your tests
-```
-yarn run test
-```
+## 使用方法
 
-### Lints and fixes files
-```
-yarn run lint
-```
-
-### Run your unit tests
-```
-yarn run test:unit
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+ページを開き、都道府県にチェックを入れると、チェックを入れた都道府県の総人口遷移が折れ線グラフとして画面下部に表示されます。
