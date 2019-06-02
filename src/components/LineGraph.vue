@@ -1,5 +1,6 @@
 <template>
   <v-app id="line-graph">
+    <error-dialog v-if="isShowErrorDialog" :isShow="isShowErrorDialog" @close="closeErrorModal"/>
     <v-toolbar color="indigo" dark fixed app>
       <v-container>
         <v-layout justify-center align-center>
@@ -28,6 +29,7 @@
 </template>
 <script lang="ts">
 import Vue from "vue";
+import ErrorDialog from "./ErrorDialog.vue";
 import PrefectureRepository, { Prefecture } from "../ts/PrefectureRepository";
 import PopulationRepository, {
   TotalPopulation
@@ -42,15 +44,18 @@ interface Population {
 
 export default Vue.extend({
   name: "LineGraph",
+  components: { ErrorDialog },
   data(): {
     prefectures: Prefecture[];
     checkedPrefectures: Prefecture[];
     populations: Population[];
+    isShowErrorDialog: boolean;
   } {
     return {
       prefectures: [],
       checkedPrefectures: [],
-      populations: []
+      populations: [],
+      isShowErrorDialog: false
     };
   },
   created() {
@@ -88,32 +93,50 @@ export default Vue.extend({
   },
   methods: {
     async initPrefectures() {
-      const response = await PrefectureRepository.get();
-      this.prefectures = response.data.result;
+      try {
+        const response = await PrefectureRepository.get();
+        this.prefectures = response.data.result;
+      } catch (error) {
+        this.isShowErrorDialog = true;
+      }
     },
     async getPopulationCompositions(
       prefCode: number
     ): Promise<TotalPopulation[]> {
-      const response = await PopulationRepository.getComposition(prefCode);
-      return response.data.result.data[0].data;
+      try {
+        const response = await PopulationRepository.getComposition(prefCode);
+        return response.data.result.data[0].data;
+      } catch (error) {
+        this.isShowErrorDialog = true;
+        return new Promise((resolve, reject) => {
+          reject(error);
+        });
+      }
     },
     updatePopulations() {
       this.populations = [];
       this.checkedPrefectures.map(async pref => {
-        const populationCompositions = await this.getPopulationCompositions(
-          pref.prefCode
-        );
-        this.populations.push({
-          code: pref.prefCode,
-          name: pref.prefName,
-          data: populationCompositions.map(
-            populationComposition => populationComposition.value
-          ),
-          years: populationCompositions.map(
-            populationCompositions => populationCompositions.year
-          )
-        });
+        try {
+          const populationCompositions = await this.getPopulationCompositions(
+            pref.prefCode
+          );
+          this.populations.push({
+            code: pref.prefCode,
+            name: pref.prefName,
+            data: populationCompositions.map(
+              populationComposition => populationComposition.value
+            ),
+            years: populationCompositions.map(
+              populationCompositions => populationCompositions.year
+            )
+          });
+        } catch (error) {
+          this.isShowErrorDialog = true;
+        }
       });
+    },
+    closeErrorModal() {
+      this.isShowErrorDialog = false;
     }
   }
 });
