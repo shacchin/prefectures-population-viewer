@@ -4,7 +4,7 @@
     <v-toolbar color="indigo" dark fixed app>
       <v-container>
         <v-layout justify-center align-center>
-          <v-toolbar-title class="display-1">都道府県別　総人口推移グラフ</v-toolbar-title>
+          <v-toolbar-title class="display-1">都道府県別 総人口推移グラフ</v-toolbar-title>
         </v-layout>
       </v-container>
     </v-toolbar>
