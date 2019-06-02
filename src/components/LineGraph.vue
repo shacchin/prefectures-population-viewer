@@ -4,26 +4,22 @@
     <v-toolbar color="indigo" dark fixed app>
       <v-container>
         <v-layout justify-center align-center>
-          <v-toolbar-title class="display-1">都道府県別人口グラフ</v-toolbar-title>
+          <v-toolbar-title class="display-1">都道府県別　総人口推移グラフ</v-toolbar-title>
         </v-layout>
       </v-container>
     </v-toolbar>
     <v-content>
       <v-container grid-list-md text-md-center>
         <v-layout row wrap>
-          <v-frex md3>
-            <v-chip class="title" label dark>都道府県</v-chip>
-          </v-frex>
+          <v-chip class="title" label dark>都道府県</v-chip>
         </v-layout>
         <v-layout row wrap>
           <v-flex v-for="pref in prefectures" :key="pref.prefCode" md3>
             <v-checkbox :value="pref" v-model="checkedPrefectures" :label="pref.prefName"></v-checkbox>
           </v-flex>
         </v-layout>
+        <highcharts v-if="isShowGraph" :options="chartOptions"/>
       </v-container>
-      <div>
-        <highcharts :options="chartOptions"/>
-      </div>
     </v-content>
   </v-app>
 </template>
@@ -65,30 +61,47 @@ export default Vue.extend({
     categories(): number[] {
       return this.populations.length > 0 ? this.populations[0].years : [];
     },
+    isShowGraph(): boolean {
+      return this.checkedPrefectures.length > 0;
+    },
     chartOptions(): any {
       return {
         chart: {
           type: "line"
         },
         title: null,
+        legend: {
+          // 凡例
+          layout: "vertical",
+          align: "right",
+          verticalAlign: "top"
+        },
         xAxis: {
+          // x軸
           title: {
-            text: "年度"
+            text: "年度",
+            align: "high"
           },
           categories: this.categories
         },
         yAxis: {
+          // y軸
           title: {
-            text: "人口数"
+            text: "人口数",
+            align: "high",
+            rotation: "0"
           }
         },
-        series: this.populations
+        series: this.populations // グラフに表示するデータ
       };
     }
   },
   watch: {
-    checkedPrefectures() {
-      this.updatePopulations();
+    checkedPrefectures(
+      newPrefectures: Prefecture[],
+      oldPrefectures: Prefecture[]
+    ) {
+      this.updatePopulations(newPrefectures, oldPrefectures);
     }
   },
   methods: {
@@ -113,26 +126,60 @@ export default Vue.extend({
         });
       }
     },
-    updatePopulations() {
-      this.populations = [];
-      this.checkedPrefectures.map(async pref => {
-        try {
-          const populationCompositions = await this.getPopulationCompositions(
-            pref.prefCode
-          );
-          this.populations.push({
-            code: pref.prefCode,
-            name: pref.prefName,
-            data: populationCompositions.map(
-              populationComposition => populationComposition.value
-            ),
-            years: populationCompositions.map(
-              populationCompositions => populationCompositions.year
-            )
-          });
-        } catch (error) {
-          this.isShowErrorDialog = true;
-        }
+    updatePopulations(
+      newPrefectures: Prefecture[],
+      oldPrefectures: Prefecture[]
+    ) {
+      if (oldPrefectures < newPrefectures) {
+        const addedPrefectures = this.getNotIncludedPrefecture(
+          newPrefectures,
+          oldPrefectures
+        );
+        this.addPopulations(addedPrefectures[0]);
+      } else if (newPrefectures < oldPrefectures) {
+        const deletedPrefectures = this.getNotIncludedPrefecture(
+          oldPrefectures,
+          newPrefectures
+        );
+        this.deletePopulations(deletedPrefectures[0]);
+      }
+    },
+    async addPopulations(pref: Prefecture) {
+      try {
+        const populationCompositions = await this.getPopulationCompositions(
+          pref.prefCode
+        );
+        this.populations.push({
+          code: pref.prefCode,
+          name: pref.prefName,
+          data: populationCompositions.map(
+            populationComposition => populationComposition.value
+          ),
+          years: populationCompositions.map(
+            populationCompositions => populationCompositions.year
+          )
+        });
+      } catch (error) {
+        this.isShowErrorDialog = true;
+      }
+    },
+    deletePopulations(pref: Prefecture) {
+      const deleteIndex = this.populations.findIndex(
+        population => pref.prefCode === population.code
+      );
+      this.populations.splice(deleteIndex, 1);
+    },
+    getNotIncludedPrefecture(
+      largePrefectures: Prefecture[],
+      smallPrefectures: Prefecture[]
+    ) {
+      if (largePrefectures.length < smallPrefectures.length) {
+        return [];
+      }
+      return largePrefectures.filter(largePref => {
+        return !smallPrefectures.some(
+          smallPref => smallPref.prefCode === largePref.prefCode
+        );
       });
     },
     closeErrorModal() {
